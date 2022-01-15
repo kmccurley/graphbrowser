@@ -60,19 +60,27 @@ require 'config.php';
       <div>
         <div>
           <h3>Browse the <?php echo $corpus;?> collaboration graph</h3>
-          <p>Other graphs can be found <a href="https://cstheory.com/graphs/">here</a></p>
+          <p>You can click on nodes to expand or contract or delete them.
+            You can also enter an arbitrary starting name.
+            Other graphs can be found
+            <a href="https://cstheory.com/graphs/">here</a></p></p>
+        </div>
+          <p>
         </div>
       </div>
-      <div class="p-3 d-flex align-items-center justify-content-between">
-        <div class="ms-3">
-          <label for="search">Enter a name to start from</label>
+      <div class="row align-items-top justify-content-between">
+        <div class="col-4">
           <input id="search" name="q" class="form-control form-control-sm" type="text" placeholder="Adi Shamir">
+          <label for="search">Enter a name to start from.
+          This is slow and you must select from the dropdown.</label>
         </div>
-        <div>
-          <label for="weightFilter">Minimum coauthored papers to draw edge</label>
+        <div class="col-4">
           <input class="form-control form-control-sm border-red" id="weightFilter" type="number" min="1" value="1">
+          <label for="weightFilter">Minimum coauthored papers to draw edge</label>
         </div>
-        <div><span id="nodecount"></span><br><span id="edgecount"></span></div>
+        <div class="col-4">
+          <span id="status"></span><br><span id="nodecount"></span><br><span id="edgecount"></span>
+        </div>
       </div>
     </div>
     <div id="graph-container"></div>
@@ -83,7 +91,7 @@ require 'config.php';
      var xhr;
      var ac = new autoComplete({
        selector: 'input#search',
-       minChars: 4,
+       minChars: 3,
        source: function(term, response) {
          console.log(term);
          try {xhr.abort(); } catch (e) {}
@@ -109,11 +117,16 @@ require 'config.php';
      var menuExpandNode = document.getElementById('menu-expand-node')
      var menuClusterNode = document.getElementById('menu-cluster-node')
      var edgeFilterValue = 0;
+
+     function showStatus(val) {
+        document.getElementById('status').innerHTML = val;
+     }
      function updateCounts() {
        document.getElementById('nodecount').innerHTML = nodes.length + ' nodes';
        document.getElementById('edgecount').innerHTML = edges.length + ' edges';
      }
      function addEdges(id) {
+       showStatus('Loading edges...');
        fetch('vis.php?id=' + id)
          .then(response => response.json())
          .then(data => {
@@ -143,6 +156,7 @@ require 'config.php';
              updateCounts();
              network.redraw();
            }
+           showStatus('');
            setTimeout(stopAnimation, 5000); //  + newEdges.length);
          });
      }
@@ -160,6 +174,10 @@ require 'config.php';
      // David Naccache is 22059
      // Adi Shamir is 9730
      function loadGraph(id) {
+       if (network) {
+         network.destroy();
+       }
+       showStatus('Loading network...');
        fetch('vis.php?id=' + id)
          .then(response => response.json())
          .then(data => {
@@ -189,7 +207,7 @@ require 'config.php';
                }
              },
              edges: {
-               width: 2,
+               width: 4,
                smooth: {
                  type: 'continuous',
                  forceDirection: 'none'
@@ -233,6 +251,7 @@ require 'config.php';
            });
            setTimeout(stopAnimation, 4000);
            updateCounts();
+           showStatus('');
          });
      }
      // Adi shamir is 9730
@@ -277,14 +296,24 @@ require 'config.php';
          $('#node-menu').hide();
          let nodeId = e.target.dataset.target;
          if (nodeId.startsWith('cluster')) {
-           console.dir(network.body);
+           if (nodeId in network.body.nodes) {
+             console.dir(network.body.nodes[nodeId]);
+             let nodesInCluster = network.getNodesInCluster(nodeId);
+             console.dir(nodesInCluster);
+             network.openCluster(nodeId);
+             nodesInCluster.forEach((nid) => {
+               nodes.remove(nid);
+             });
+           } else {
+             console.log('not in nodes');
+           }
          } else {
            nodes.remove(nodeId);
          }
          network.redraw();
          setTimeout(stopAnimation, 4000);
        });
-     loadGraph(230);
+     loadGraph(9730);
     </script>    
   </body>
 </html>

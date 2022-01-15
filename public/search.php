@@ -3,7 +3,7 @@
 if (empty($_GET['q'])) {
   die('missing q');
 }
-require('../data/db.php');
+require('db.php');
 try {
   $options = [PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
               PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -12,11 +12,11 @@ try {
                 $dbuser,
                 $dbpstr,
                 $options);
-  $sql = 'SELECT id,name from graph where name like ? limit 25';
+  $sql = 'SELECT id,name from graph where name like ? or lastname like ? limit 25';
   //echo $sql;
   $stmt = $db->prepare($sql);
-  $pattern = '%' . $_GET['q'] . '%';
-  $stmt->execute([$pattern]);
+  $pattern = $_GET['q'] . '%';
+  $stmt->execute([$pattern, $pattern]);
   $results = $stmt->fetchAll();
   echo json_encode($results);
 } catch (PDOException $pe) {
