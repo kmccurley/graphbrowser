@@ -34,24 +34,25 @@ cursor = db.cursor()
 graph = []
 counter = 0
 regex = re.compile('(\d+) "([^"]+)" (\d+)')
-with open('graph.txt', 'r') as f:
+with open(args.inputfile, 'r') as f:
     line = f.readline().strip()
     while line:
         counter += 1
         parts = line.split('"')
         id = int(parts[0][:-1])
         name = parts[1]
-        nameparts = name.split()
-        lastname = nameparts[-1]
-        edges = re.findall(r'(\d+) (\d+)', parts[2][1:])
-        edgearray = bytearray()
-        for i in range(0, len(edges)):
-            a = int(edges[i][0])
-            w = int(edges[i][1])
-            packed = struct.pack('IH', a, w)
-            edgearray.extend(packed)
-        cursor.execute('INSERT INTO graph (id,name,lastname,edges) values(%s,%s,%s,%s)',
-                       (id, name, lastname, edgearray))
+        if name:
+            nameparts = name.split()
+            lastname = nameparts[-1]
+            edges = re.findall(r'(\d+) (\d+)', parts[2][1:])
+            edgearray = bytearray()
+            for i in range(0, len(edges)):
+                a = int(edges[i][0])
+                w = int(edges[i][1])
+                packed = struct.pack('IH', a, w)
+                edgearray.extend(packed)
+            cursor.execute('INSERT INTO graph (id,name,lastname,edges) values(%s,%s,%s,%s)',
+                           (id, name, lastname, edgearray))
         line = f.readline().strip()
         if counter % 10000 == 0:
             print('vertex {}'.format(counter))
