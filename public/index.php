@@ -228,7 +228,13 @@ require 'config.php';
            network.on('selectNode', (opts) => {
              console.dir(opts);
            });
-           network.on('startStabilizing', (evt) => {
+     <?php if (array_key_exists('extras', $config)) {
+           foreach($config['extras'] as $nodeId) {
+             echo "addEdges($nodeId);";
+           }
+         }
+       ?>
+             network.on('startStabilizing', (evt) => {
              showStatus('drawing graph');
            });
            network.on('stabilizationIterationsDone', (evt) => {
