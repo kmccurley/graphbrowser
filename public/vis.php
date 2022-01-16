@@ -11,7 +11,8 @@
 if (empty($_GET['id']) || !is_numeric($_GET['id'])) {
   die('missing id');
 }
-require '../data/db.php';
+require 'config.php';
+require 'db.php';
 try {
   $options = [PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
               PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
@@ -24,7 +25,7 @@ try {
   $stmt = $db->prepare($sql);
   $stmt->execute([$_GET['id']]);
   $center = $stmt->fetch();
-  $title = strval($center['id']) . ':' . $center['name'] . ' (' . strval($center['len']/6) . ' coauthors)';
+  $title = strval($center['id']) . ': ' . $center['name'] . '(' . strval($center['len']/6) . ' '. $config['nodename'] .')';
   $nodes = array(array('id' => $_GET['id'],
                        'label' => $center['name'],
                        'title' => $title,
@@ -54,7 +55,7 @@ try {
   $stmt->execute();
   $rows = $stmt->fetchAll();
   foreach($rows as $neighbor) {
-    $title = strval($neighbor['id']) . ':' . $neighbor['name'] . ' (' . strval($neighbor['len']/6) . ' coauthors)';
+    $title = strval($neighbor['id']) . ':' . $neighbor['name'] . ' (' . strval($neighbor['len']/6) . ' ' . $config['nodename'] . ')';
     array_push($nodes, array('id' => strval($neighbor['id']),
                              'label' => $neighbor['name'],
                              'title'=> $title));

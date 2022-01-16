@@ -30,7 +30,7 @@ require 'config.php';
        border: 1px solid #CCC;
        white-space: nowrap;
        font-family: sans-serif;
-       background: #FFF;
+       background: #fffdd0;
        color: #333;
        border-radius: 5px;
        padding: 0;
@@ -45,13 +45,14 @@ require 'config.php';
        user-select: none;
      }
 
-     .context-menu li:hover {
+     .context-menu li:not(:first-child):hover {
        background-color: #DEF;
      }
     </style>
   </head>
   <body>
     <ul id="node-menu" class="context-menu">
+      <li><span id="nodename"></span></li>
       <li class="node-menu-item" id="menu-expand-node" data-target="">Expand node</li>
       <li class="node-menu-item" id="menu-delete-node" data-target="">Delete node</li>
       <li class="node-menu-item" id="menu-cluster-node" data-target="">Cluster neighbors</li>
@@ -59,27 +60,29 @@ require 'config.php';
     <div class="container">
       <div>
         <div>
-          <h3>Browse the <?php echo $corpus;?> collaboration graph</h3>
-          <p>You can click on nodes to expand or contract or delete them.
+          <h3>Browse the <?php echo $config['corpus'];?> collaboration graph</h3>
+          <p><?php echo $config['description'];?> You can click on nodes to expand or contract or delete them.
             You can also enter an arbitrary starting name.
             Other graphs can be found
             <a href="https://cstheory.com/graphs/">here</a></p></p>
         </div>
-          <p>
-        </div>
       </div>
       <div class="row align-items-top justify-content-between">
         <div class="col-4">
-          <input id="search" name="q" class="form-control form-control-sm" type="text" placeholder="Adi Shamir">
-          <label for="search">Enter a name to start from.
-          This is slow and you must select from the dropdown.</label>
+          <div class="d-flex align-items-start">
+            <div>              
+              <input id="search" name="q" class="form-control form-control-sm" type="text" placeholder="add node">
+              <label for="search">Enter a name to add a node.</label>
+            </div>
+            <button class="ms-3 btn btn-sm btn-warning" id="cleargraph">Clear graph</button>
+          </div>
         </div>
-        <div class="col-4">
+        <div class="col-2">
           <input class="form-control form-control-sm border-red" id="weightFilter" type="number" min="1" value="1">
-          <label for="weightFilter">Minimum coauthored papers to draw edge</label>
+          <label for="weightFilter">Minimum edge weight to draw edge</label>
         </div>
         <div class="col-4">
-          <span id="status"></span><br><span id="nodecount"></span><br><span id="edgecount"></span>
+          <span id="nodecount"></span><br><span id="edgecount"></span><br><span id="status"></span>
         </div>
       </div>
     </div>
@@ -105,7 +108,7 @@ require 'config.php';
          return '<div class="autocomplete-suggestion" data-id="' + item['id']+'" data-val="' + item['name']+'">' + item['name'] + '</div>';
        },
        onSelect: function(e, term, item) {
-         loadGraph(item.dataset.id);
+         addEdges(item.dataset.id);
        }
      });
     </script>
@@ -170,6 +173,7 @@ require 'config.php';
      function stopAnimation() {
        console.log('stopped');
        network.stopSimulation();
+       showStatus('');
      }
      // David Naccache is 22059
      // Adi Shamir is 9730
@@ -220,23 +224,34 @@ require 'config.php';
            network.on('selectNode', (opts) => {
              console.dir(opts);
            });
-           network.on('oncontext', function(props) {
-             props.event.preventDefault();
-             console.log('oncontext');
-             console.dir(props);
-             console.dir(network.getNodeAt(props.pointer.DOM));
+           network.on('startStabilizing', (evt) => {
+             showStatus('drawing graph');
            });
+           network.on('stabilizationIterationsDone', (evt) => {
+             showStatus('');
+           });
+//           network.on('oncontext', function(props) {
+//             props.event.preventDefault();
+//             console.log('oncontext');
+//             console.dir(props);
+//             console.dir(network.getNodeAt(props.pointer.DOM));
+//           });
            // If someone clicks on a node, show the menu.
            network.on('click', function(props) {
-             props.event.preventDefault();
              if (props.nodes && props.nodes.length) {
                let nodeId = props.nodes[0];
+               let node = nodes.get(nodeId);
+               if (node && 'title' in node) {
+                 console.dir(node);
+                 $('#nodename').text(node['title']);
+               }
                document.querySelectorAll('.node-menu-item').forEach(function(item) {
                  item.setAttribute('data-target', nodeId);
                });
                $('#node-menu').css({display: 'block',
                                     top: props.event.center.y + 'px',
                                     left: container.offsetLeft + props.event.center.x + 'px'});
+               //props.event.preventDefault();
              } else {
                $('#node-menu').hide();
              }
@@ -246,15 +261,21 @@ require 'config.php';
            });
            network.on('dragEnd', function (params) {
              console.dir(params);
-             params.event.preventDefault();
+             //             params.event.preventDefault();
              setTimeout(stopAnimation, 4);
+             showStatus('');
            });
            setTimeout(stopAnimation, 4000);
            updateCounts();
            showStatus('');
          });
      }
-     // Adi shamir is 9730
+     document.getElementById('cleargraph').addEventListener('click', (e) => {
+       console.log('clear network');
+       nodes.clear();
+       edges.clear();
+       updateCounts();
+     });
        weightFilterSelector.addEventListener('change', (e) => {
          edgeFilterValue = weightFilterSelector.value;
          console.log('weight filter change');
@@ -269,7 +290,7 @@ require 'config.php';
            network.openCluster(nodeId);
            setTimeout(stopAnimation, 4000);
          } else {
-           nodes.update({'id': nodeId, color: {background: '#ffb0b1'}});
+           nodes.update({'id': nodeId, color: {background: 'yellow'}}); //#ffb0b1'}});
            addEdges(nodeId);
          }
        });
@@ -311,9 +332,10 @@ require 'config.php';
            nodes.remove(nodeId);
          }
          network.redraw();
+         updateCounts();
          setTimeout(stopAnimation, 4000);
        });
-     loadGraph(9730);
+     loadGraph(<?php echo $config['start'];?>);
     </script>    
   </body>
 </html>
