@@ -290,6 +290,7 @@ require 'config.php';
          edgeFilterValue = weightFilterSelector.value;
          console.log('weight filter change');
          edgesView.refresh();
+         setTimeout(stopAndCenter, 4000);
        });
        menuExpandNode.addEventListener('click', (e) => {
          $('#node-menu').hide();
