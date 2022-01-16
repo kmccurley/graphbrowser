@@ -160,7 +160,7 @@ require 'config.php';
              network.redraw();
            }
            showStatus('');
-           setTimeout(stopAnimation, 5000); //  + newEdges.length);
+           setTimeout(stopAndCenter, 5000); //  + newEdges.length);
          });
      }
      function edgeFilter(edge) {
@@ -170,10 +170,13 @@ require 'config.php';
          return false;
        }
      };
+     function stopAndCenter() {
+       stopAnimation();         
+       network.fit({animation: true});
+     }
      function stopAnimation() {
        console.log('stopped');
        network.stopSimulation();
-       network.fit({animation: true});
        showStatus('');
      }
      // David Naccache is 22059
@@ -266,7 +269,7 @@ require 'config.php';
              setTimeout(stopAnimation, 4);
              showStatus('');
            });
-           setTimeout(stopAnimation, 4000);
+           setTimeout(stopAndCenter, 4000);
            updateCounts();
            showStatus('');
          });
@@ -289,7 +292,7 @@ require 'config.php';
          console.dir(nodeId);
          if (nodeId.startsWith('cluster')) {
            network.openCluster(nodeId);
-           setTimeout(stopAnimation, 4000);
+           setTimeout(stopAndCenter, 4000);
          } else {
            nodes.update({'id': nodeId, color: {background: 'yellow'}}); //#ffb0b1'}});
            addEdges(nodeId);
@@ -312,7 +315,7 @@ require 'config.php';
              title: title
            }
          });
-         setTimeout(stopAnimation, 4000);
+         setTimeout(stopAndCenter, 4000);
        });
        menuDeleteNode.addEventListener('click', (e) => {
          $('#node-menu').hide();
@@ -334,7 +337,7 @@ require 'config.php';
          }
          network.redraw();
          updateCounts();
-         setTimeout(stopAnimation, 4000);
+         setTimeout(stopAndCenter, 4000);
        });
      loadGraph(<?php echo $config['start'];?>);
     </script>    
