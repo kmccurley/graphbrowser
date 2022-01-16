@@ -173,6 +173,7 @@ require 'config.php';
      function stopAnimation() {
        console.log('stopped');
        network.stopSimulation();
+       network.fit({animation: true});
        showStatus('');
      }
      // David Naccache is 22059
