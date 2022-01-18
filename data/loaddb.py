@@ -1,5 +1,9 @@
 # used to create the data in the mysql database from a flat text file
-# called graph.txt. The database table name is assumed to be 'graph'
+# called graph.txt. The database table name is assumed to be 'graph.txt'
+# and has the format of one line per node, with each line having
+# three fields separated by tabs:
+# id\tname\tedgelist
+# The edgelist is a sequence of id,weight pairs with spaces to separate them.
 
 import argparse
 import re
@@ -33,18 +37,17 @@ db = pymysql.connect(host='localhost',
 cursor = db.cursor()
 graph = []
 counter = 0
-regex = re.compile('(\d+) "([^"]+)" (\d+)')
 with open(args.inputfile, 'r') as f:
     line = f.readline().strip()
     while line:
         counter += 1
-        parts = line.split('"')
-        id = int(parts[0][:-1])
+        parts = line.split('\t')
+        id = int(parts[0])
         name = parts[1]
         if name:
             nameparts = name.split()
             lastname = nameparts[-1]
-            edges = re.findall(r'(\d+) (\d+)', parts[2][1:])
+            edges = re.findall(r'(\d+) (\d+)', parts[2])
             edgearray = bytearray()
             for i in range(0, len(edges)):
                 a = int(edges[i][0])
