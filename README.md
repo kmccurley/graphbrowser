@@ -8,7 +8,8 @@ graph). The code is broken into pieces:
    client side code served through index.php. That subdirectory can be copied to
    a directory on a php-equipped web server. Configuration is stored in db.php.
 
-In addition, data/ contains the original data for two databases, namely DBLP and cryptodb.
+In addition, data/ contains the original data for two databases, namely
+lightnight and cryptodb. The data for dblp is too big.
 
 The design of the database schema has changed since inception. Nodes are
 assigned a non-negative integer ID up to 2^31 (this is a primary key in the
