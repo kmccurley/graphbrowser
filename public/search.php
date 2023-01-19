@@ -12,7 +12,7 @@ try {
                 $dbuser,
                 $dbpstr,
                 $options);
-  $sql = 'SELECT id,name from graph where name like ? or lastname like ? limit 25';
+  $sql = 'SELECT id,name from graph where name like ? or lastname like ? limit 40';
   //echo $sql;
   $stmt = $db->prepare($sql);
   $pattern = $_GET['q'] . '%';

@@ -10,6 +10,7 @@ import re
 import pymysql
 import sys
 import struct
+import gzip
 
 arguments = argparse.ArgumentParser()
 arguments.add_argument('--inputfile',
@@ -37,7 +38,7 @@ db = pymysql.connect(host='localhost',
 cursor = db.cursor()
 graph = []
 counter = 0
-with open(args.inputfile, 'r') as f:
+with gzip.open(args.inputfile, 'rt') as f:
     line = f.readline().strip()
     while line:
         counter += 1

@@ -56,6 +56,7 @@ require 'config.php';
       <li class="node-menu-item" id="menu-expand-node" data-target="">Expand node</li>
       <li class="node-menu-item" id="menu-delete-node" data-target="">Delete node</li>
       <li class="node-menu-item" id="menu-cluster-node" data-target="">Cluster neighbors</li>
+      <li class="node-menu-item" id="menu-search-node" data-label="">Search</li>
     </ul>
     <div class="container">
       <div>
@@ -115,11 +116,32 @@ require 'config.php';
     <script>
      var nodes, edges, network, edgesView, container;
      container = document.getElementById('graph-container');
-     var weightFilterSelector = document.getElementById('weightFilter')
-     var menuDeleteNode = document.getElementById('menu-delete-node')
-     var menuExpandNode = document.getElementById('menu-expand-node')
-     var menuClusterNode = document.getElementById('menu-cluster-node')
+     var weightFilterSelector = document.getElementById('weightFilter');
+     var menuDeleteNode = document.getElementById('menu-delete-node');
+     var menuSearchNode = document.getElementById('menu-search-node');
+     var menuExpandNode = document.getElementById('menu-expand-node');
+     var menuClusterNode = document.getElementById('menu-cluster-node');
      var edgeFilterValue = 0;
+     var startNodeId = 9730;
+     var extraNodes = [];
+     <?php
+        if (!empty($_GET['id'])) {
+          $nodes = explode(',', $_GET['id']);
+          $startNodeId = array_shift($nodes);
+          echo 'startNodeId='.$startNodeId.';';
+          foreach($nodes as $v) {
+            echo 'extraNodes.push('.$v.');';
+          }
+        } else {
+          if (array_key_exists('start', $config)) {
+             echo 'startNodeId=' . $config['start'].';';
+          }
+          if (array_key_exists('extras', $config)) {
+             $extraNodes = implode(',', $config['extras']);
+             echo 'extraNodes = [' . $extraNodes . '];';
+          }
+        }
+    ?>
 
      function showStatus(val) {
         document.getElementById('status').innerHTML = val;
@@ -159,7 +181,7 @@ require 'config.php';
              updateCounts();
              network.redraw();
            }
-           showStatus('');
+           showStatus('drawing graph...');
            setTimeout(stopAndCenter, 5000); //  + newEdges.length);
          });
      }
@@ -228,24 +250,6 @@ require 'config.php';
            network.on('selectNode', (opts) => {
              console.dir(opts);
            });
-     <?php if (array_key_exists('extras', $config)) {
-           foreach($config['extras'] as $nodeId) {
-             echo "addEdges($nodeId);";
-           }
-         }
-       ?>
-             network.on('startStabilizing', (evt) => {
-             showStatus('drawing graph');
-           });
-           network.on('stabilizationIterationsDone', (evt) => {
-             showStatus('');
-           });
-//           network.on('oncontext', function(props) {
-//             props.event.preventDefault();
-//             console.log('oncontext');
-//             console.dir(props);
-//             console.dir(network.getNodeAt(props.pointer.DOM));
-//           });
            // If someone clicks on a node, show the menu.
            network.on('click', function(props) {
              if (props.nodes && props.nodes.length) {
@@ -257,6 +261,7 @@ require 'config.php';
                }
                document.querySelectorAll('.node-menu-item').forEach(function(item) {
                  item.setAttribute('data-target', nodeId);
+                 item.setAttribute('data-label', node['label']);
                });
                $('#node-menu').css({display: 'block',
                                     top: props.event.center.y + 'px',
@@ -273,11 +278,14 @@ require 'config.php';
              console.dir(params);
              //             params.event.preventDefault();
              setTimeout(stopAnimation, 4);
-             showStatus('');
+             showStatus('dragEnd');
            });
            setTimeout(stopAndCenter, 4000);
            updateCounts();
-           showStatus('');
+           showStatus('adding edges');
+           extraNodes.forEach(id => {
+             addEdges(id);
+           });
          });
      }
      document.getElementById('cleargraph').addEventListener('click', (e) => {
@@ -346,7 +354,12 @@ require 'config.php';
          updateCounts();
          setTimeout(stopAndCenter, 4000);
        });
-     loadGraph(<?php echo $config['start'];?>);
+       menuSearchNode.addEventListener('click', (e) => {
+         $('#node-menu').hide();
+         window.open('https://google.com/search?q=' + encodeURIComponent(e.target.dataset.label), '_blank');
+       });
+
+     loadGraph(startNodeId);
     </script>    
   </body>
 </html>
